@@ -1,4 +1,4 @@
-const CACHE_NAME = 'daedalus-v0.9';
+const CACHE_NAME = 'daedalus-v1.0';
 const ASSETS = [
   './',
   './index.html',
