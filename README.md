@@ -15,18 +15,18 @@ Crafted by Or4cl3 AI Solutions’ Autonomous R&D Lab
 
 Daedalus Mobile Agent is a complete, installable Progressive Web App that puts the Daedalus autonomous innovation system in your pocket.
 
-It features a visually stunning landing experience, an immersive loading sequence, a full conversational interface, and a projects gallery so you can save, reopen, and continue work across sessions — all while remaining fully offline-capable and privacy-respecting.
+It features a visually stunning landing experience with the official neural logo, an immersive loading sequence, a full conversational interface, and a projects gallery so you can save, reopen, and continue work across sessions — all while remaining fully offline-capable and privacy-respecting.
 
 ---
 
 ## What’s New in v1.0
 
-- **Custom neural logo** — the dual-face AI identity mark is now used throughout the experience
+- **Official neural logo** — dual-face AI identity mark used on landing, loading, header, and chat welcome
 - **Captivating landing page** with animated particles, glowing logo, and strong call-to-action
 - **Engaging loading screen** with sequential status messages and progress animation
 - **Immersive chat interface** with streaming-style replies, typing indicators, and suggested prompts
 - **Projects gallery** — save conversations as named projects, reopen them later, rename or delete
-- **Updated visual system** — deep black foundation, neon cyan (`#22d3ee`) and magenta/violet accents that match the logo
+- **Updated visual system** — deep black foundation, neon cyan (`#22d3ee`) and magenta/violet accents matched to the logo
 - Bottom navigation between Chat and Projects
 - Refined typography and micro-interactions
 
@@ -51,19 +51,10 @@ It features a visually stunning landing experience, an immersive loading sequenc
 ## The Five Methodologies (Baked In)
 
 1. **Lightning-Fast Requirements Gathering**  
-   Continuous clarification of goals, constraints, risks, and success metrics.
-
 2. **Creative System Architecture**  
-   Modular, scalable, ethical designs using modern paradigms.
-
 3. **Flawless Task Implementation**  
-   Decomposition into clear vertical slices with emphasis on maintainability.
-
 4. **Rapid Prototyping & Testing**  
-   Bias toward the smallest valuable end-to-end flow first.
-
-5. **Continuous Improvement System**  
-   Designed so the agent (and the product) can evolve with feedback and new capabilities.
+5. **Continuous Improvement System**
 
 ---
 
@@ -73,18 +64,16 @@ It features a visually stunning landing experience, an immersive loading sequenc
 .
 ├── index.html              # Landing + Loading + App shell
 ├── css/
-│   └── styles.css          # Complete design system (neon cyan / magenta palette)
+│   └── styles.css          # Design system (neon cyan / magenta)
 ├── js/
-│   └── daedalus.js         # Personality engine, particles, projects, navigation
+│   └── daedalus.js         # Personality engine, particles, projects
 ├── icons/
 │   ├── logo.png            # Primary neural logo
-│   ├── logo-80.png         # Small logo variant
-│   ├── icon-192.png        # PWA icon
-│   ├── icon-512.png        # PWA icon
-│   └── icon.svg            # Fallback vector icon
-├── manifest.json           # Web App Manifest
-├── sw.js                   # Service Worker (v1.0 cache)
-├── .nojekyll               # Disable Jekyll processing
+│   ├── icon-192.png / icon-512.png
+│   └── icon.svg
+├── manifest.json
+├── sw.js
+├── LICENSE                 # Or4cl3 Open Model License (OOML) v1.0
 └── README.md
 ```
 
@@ -93,80 +82,43 @@ It features a visually stunning landing experience, an immersive loading sequenc
 ## Getting Started
 
 ### Live Demo
-
 **https://or4cl3-ai-1.github.io/daedalus-mobile-agent/**
 
 ### Local Preview
-
 ```bash
 npx serve .
 # or
 python3 -m http.server 8080
 ```
 
-### Install as a Standalone App
-
-**iOS / iPadOS (Safari)**  
-1. Open the live URL in Safari  
-2. Tap Share → **Add to Home Screen**  
-3. Confirm  
-
-**Android (Chrome)**  
-1. Open the live URL  
-2. Menu → **Install app** / **Add to Home Screen**  
-3. Confirm  
+### Install as Standalone App
+- **iOS**: Safari → Share → Add to Home Screen
+- **Android**: Chrome → Install app / Add to Home Screen
 
 ---
 
 ## Visual Identity
 
-The design system is built around the neural dual-face logo:
+Built around the official neural dual-face logo:
 
-- **Background**: Deep pure black (`#05050a`)
-- **Primary accent**: Neon cyan (`#22d3ee`)
-- **Secondary accents**: Magenta / violet (`#c084fc` → `#e879f9`)
-- **Gradients**: Multi-stop cyan → purple that mirror the logo’s energy
-- **Logo treatment**: Soft glow and subtle pulse on the landing page
-
----
-
-## Architecture Notes
-
-### Why a Progressive Web App?
-
-Highest-leverage first version: zero store friction, true offline support, native-like install experience on both platforms, and a clean path to later native shells (Capacitor, etc.) if store presence is required.
-
-### Personality Engine
-
-The function `generateResponse()` in `js/daedalus.js` is the single replacement point. It can later be swapped for:
-
-- A secure backend API (OpenAI-compatible, Anthropic, custom fine-tune)
-- On-device inference (WebLLM, transformers.js, MediaPipe)
-- A hybrid local-first + cloud escalation approach
-
-### Privacy
-
-All conversation and project data is stored exclusively in `localStorage`. No external network requests are made by the application itself.
-
----
-
-## Roadmap
-
-| Phase | Focus | Status |
-|-------|-------|--------|
-| **v1.0** | Landing, loading, chat, projects gallery, new visual identity | **Current** |
-| **v1.1** | Real LLM integration (API or on-device) | Planned |
-| **v1.2** | Voice input / output | Planned |
-| **v1.3** | Tool use (documents, code, file handling) | Planned |
-| **v1.4** | Optional native shell (Capacitor) | Planned |
-| **v2.0** | Multi-device sync with end-to-end encryption (optional) | Future |
+- Background: Deep pure black (`#05050a`)
+- Primary accent: Neon cyan (`#22d3ee`)
+- Secondary: Magenta / violet (`#c084fc` → `#e879f9`)
+- Multi-stop gradients that mirror the logo’s energy
 
 ---
 
 ## License
 
-Copyright © Or4cl3 AI Solutions. All rights reserved.  
-This project is provided as a demonstration and foundation for the Daedalus autonomous innovation system.
+This project is released under the **Or4cl3 Open Model License (OOML) v1.0**.
+
+See the [LICENSE](LICENSE) file for the full terms.
+
+Key points:
+- Free to use, modify, and distribute (including commercial use)
+- Attribution required
+- Derivative works must remain under OOML v1.0 (or later)
+- Source code of derivatives must be made available upon request
 
 ---
 
