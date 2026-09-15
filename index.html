@@ -142,18 +142,31 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
         Save Current as Project
       </button>
+      <button class="panel-item" id="uploadDocBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Upload Document
+      </button>
       <button class="panel-item" id="clearChatBtn">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg>
         Clear Conversation
       </button>
       <div class="panel-divider"></div>
       <div class="panel-section">
+        <h4>Documents</h4>
+        <div id="docsList" class="docs-list">
+          <p class="docs-empty" id="docsEmpty">No documents uploaded yet.</p>
+        </div>
+      </div>
+      <div class="panel-divider"></div>
+      <div class="panel-section">
         <h4>About</h4>
         <p class="about-text">Autonomous AI Innovation Agent crafted by Or4cl3 AI Solutions’ Autonomous R&D Lab. I translate visionary software ideas into tangible, production-ready realities.</p>
-        <p class="version">v1.0 · Pocket Visionary</p>
+        <p class="version">v1.1 · Document-Aware</p>
       </div>
     </div>
   </aside>
+
+  <input type="file" id="docInput" accept=".pdf,.txt,.md,.markdown,text/plain,application/pdf" hidden />
 
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal" id="modal">
@@ -166,6 +179,12 @@
     </div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    if (window.pdfjsLib) {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+  </script>
   <script src="js/daedalus.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
