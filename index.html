@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" content="#05050a" />
+  <meta name="theme-color" content="#0a0a0f" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Daedalus" />
   <meta name="description" content="Daedalus — Autonomous AI Innovation Agent. Your pocket visionary for turning software ideas into production-ready realities." />
   <link rel="manifest" href="manifest.json" />
-  <link rel="icon" type="image/png" href="icons/logo.png" />
-  <link rel="apple-touch-icon" href="icons/logo.png" />
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <title>Daedalus</title>
   <link rel="stylesheet" href="css/styles.css" />
 </head>
@@ -31,7 +31,9 @@
       <p class="landing-desc">Fuse humanistic creativity with machine precision.<br>Translate visionary ideas into production-ready realities.</p>
       <button class="cta-btn" id="enterBtn">
         <span>Begin Building</span>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
       </button>
       <p class="landing-sub">No software vision is out of reach</p>
     </div>
@@ -45,7 +47,7 @@
           <circle cx="50" cy="50" r="42" class="ring-progress"/>
         </svg>
         <div class="loading-icon">
-          <img src="icons/logo.png" alt="" width="48" height="48" />
+          <img src="icons/logo-80.png" alt="" width="48" height="48" />
         </div>
       </div>
       <p class="loading-text" id="loadingText">Initializing neural core…</p>
@@ -57,7 +59,7 @@
     <header class="app-header">
       <div class="header-left">
         <div class="avatar">
-          <img src="icons/logo.png" alt="Daedalus" width="38" height="38" />
+          <img src="icons/logo-80.png" alt="Daedalus" width="38" height="38" />
         </div>
         <div class="header-info">
           <h1 id="headerTitle">Daedalus</h1>
@@ -65,11 +67,15 @@
         </div>
       </div>
       <div class="header-actions">
-        <button class="icon-btn" id="newProjectBtn" aria-label="New Project">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        <button class="icon-btn" id="newProjectBtn" title="New Project" aria-label="New Project">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
         </button>
         <button class="icon-btn" id="menuBtn" aria-label="Menu">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
+          </svg>
         </button>
       </div>
     </header>
@@ -79,7 +85,7 @@
         <main class="chat" id="chat"></main>
         <div class="welcome" id="welcome">
           <div class="welcome-icon">
-            <img src="icons/logo.png" alt="" width="64" height="64" />
+            <img src="icons/logo-80.png" alt="" width="64" height="64" />
           </div>
           <h2>Ready to build the future.</h2>
           <p>Share a vision, requirement, or problem. I will turn it into production-ready reality.</p>
@@ -91,10 +97,31 @@
           </div>
         </div>
         <footer class="input-area">
+          <div class="context-bar" id="contextBar" hidden>
+            <span id="contextChip" class="context-chip"></span>
+            <span id="modeChip" class="context-chip mode"></span>
+          </div>
+          <div class="mode-row" id="modeRow">
+            <button class="mode-chip active" data-mode="auto">Auto</button>
+            <button class="mode-chip" data-mode="requirements">Requirements</button>
+            <button class="mode-chip" data-mode="architecture">Architecture</button>
+            <button class="mode-chip" data-mode="prototype">Prototype</button>
+            <button class="mode-chip" data-mode="implement">Implement</button>
+            <button class="mode-chip" data-mode="improve">Improve</button>
+          </div>
+          <div class="followups" id="followups"></div>
           <div class="input-wrapper">
+            <button class="icon-btn mic-btn" id="micBtn" aria-label="Voice input" title="Voice input">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            </button>
             <textarea id="input" rows="1" placeholder="Share a vision, requirement, or problem…" enterkeyhint="send"></textarea>
+            <button class="icon-btn" id="speakBtn" aria-label="Speak last reply" title="Speak last reply">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>
+            </button>
             <button class="send-btn" id="sendBtn" aria-label="Send" disabled>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/>
+              </svg>
             </button>
           </div>
         </footer>
@@ -110,7 +137,9 @@
         </div>
         <div class="projects-grid" id="projectsGrid"></div>
         <div class="projects-empty" id="projectsEmpty">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4">
+            <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+          </svg>
           <p>No projects yet</p>
           <span>Start a conversation and save it as a project to continue later.</span>
         </div>
@@ -137,11 +166,15 @@
 
     <nav class="bottom-nav">
       <button class="nav-item active" data-view="chatView">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+        </svg>
         <span>Chat</span>
       </button>
       <button class="nav-item" data-view="projectsView">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+        </svg>
         <span>Projects</span>
       </button>
       <button class="nav-item" data-view="docsView">
@@ -174,6 +207,14 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg>
         Clear Conversation
       </button>
+      <button class="panel-item" id="exportBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export Conversation
+      </button>
+      <button class="panel-item" id="settingsBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        LLM Settings
+      </button>
       <div class="panel-divider"></div>
       <div class="panel-section">
         <h4>Documents</h4>
@@ -184,13 +225,28 @@
       <div class="panel-divider"></div>
       <div class="panel-section">
         <h4>About</h4>
-        <p class="about-text">Autonomous AI Innovation Agent crafted by Or4cl3 AI Solutions’ Autonomous R&D Lab. I translate visionary software ideas into tangible, production-ready realities.</p>
-        <p class="version">v1.2 · Document-Aware</p>
+        <p class="about-text">Autonomous AI Innovation Agent crafted by Or4cl3 AI Solutions’ Autonomous R&amp;D Lab. I translate visionary software ideas into tangible, production-ready realities.</p>
+        <p class="version">v2.1 · LLM-Connected</p>
       </div>
     </div>
   </aside>
 
   <input type="file" id="docInput" accept=".pdf,.txt,.md,.markdown,text/plain,application/pdf" hidden />
+
+  <div class="modal-overlay" id="settingsOverlay">
+    <div class="modal" id="settingsModal">
+      <h3>LLM Settings</h3>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;line-height:1.4">Paste a Hugging Face token with <strong>Inference Providers</strong> permission. Token stays on this device only.</p>
+      <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px">HF Access Token</label>
+      <input type="password" id="hfTokenInput" placeholder="hf_…" autocomplete="off" style="margin-bottom:12px" />
+      <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px">Model ID</label>
+      <input type="text" id="hfModelInput" placeholder="google/gemma-2-9b-it" style="margin-bottom:16px" />
+      <div class="modal-actions">
+        <button class="btn-ghost" id="settingsCancel">Cancel</button>
+        <button class="btn-primary" id="settingsSave">Save</button>
+      </div>
+    </div>
+  </div>
 
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal" id="modal">
