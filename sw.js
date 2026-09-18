@@ -1,12 +1,10 @@
-const CACHE_NAME = 'daedalus-v2.1.1';
+const CACHE_NAME = 'daedalus-v2.1.2';
 const ASSETS = [
   './',
   './index.html',
   './css/styles.css',
   './js/daedalus.js',
-  './manifest.json',
-  './icons/logo.png',
-  './icons/icon.svg'
+  './manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
@@ -27,14 +25,12 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      return cached || fetch(event.request).then((response) => {
-        if (response && response.status === 200 && event.request.method === 'GET') {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-        }
-        return response;
-      }).catch(() => cached);
-    })
+    fetch(event.request).then((response) => {
+      if (response && response.status === 200 && event.request.method === 'GET') {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+      }
+      return response;
+    }).catch(() => caches.match(event.request))
   );
 });
