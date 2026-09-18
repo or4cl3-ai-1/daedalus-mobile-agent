@@ -29,7 +29,7 @@
       <h1 class="landing-title">Daedalus</h1>
       <p class="landing-tagline">Autonomous AI Innovation Agent</p>
       <p class="landing-desc">Fuse humanistic creativity with machine precision.<br>Translate visionary ideas into production-ready realities.</p>
-      <button class="cta-btn" id="enterBtn">
+      <button class="cta-btn" id="enterBtn" type="button" onclick="window.__daedalusStart&&window.__daedalusStart()">
         <span>Begin Building</span>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <path d="M5 12h14M12 5l7 7-7 7"/>
@@ -137,9 +137,6 @@
         </div>
         <div class="projects-grid" id="projectsGrid"></div>
         <div class="projects-empty" id="projectsEmpty">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4">
-            <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
-          </svg>
           <p>No projects yet</p>
           <span>Start a conversation and save it as a project to continue later.</span>
         </div>
@@ -148,41 +145,20 @@
       <div id="docsView" class="view">
         <div class="projects-header">
           <h2>Documents</h2>
-          <button class="btn-primary" id="uploadDocBtnMain">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Upload
-          </button>
+          <button class="btn-primary" id="uploadDocBtnMain">Upload</button>
         </div>
         <div class="docs-grid" id="docsGrid"></div>
         <div class="projects-empty" id="docsEmptyMain">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4">
-            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
-          </svg>
           <p>No documents yet</p>
-          <span>Upload a PDF, TXT, or Markdown file. I can summarize, extract theorems, and design systems from it.</span>
+          <span>Upload a PDF, TXT, or Markdown file.</span>
         </div>
       </div>
     </div>
 
     <nav class="bottom-nav">
-      <button class="nav-item active" data-view="chatView">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-        </svg>
-        <span>Chat</span>
-      </button>
-      <button class="nav-item" data-view="projectsView">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
-        </svg>
-        <span>Projects</span>
-      </button>
-      <button class="nav-item" data-view="docsView">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
-        </svg>
-        <span>Docs</span>
-      </button>
+      <button class="nav-item active" data-view="chatView"><span>Chat</span></button>
+      <button class="nav-item" data-view="projectsView"><span>Projects</span></button>
+      <button class="nav-item" data-view="docsView"><span>Docs</span></button>
     </nav>
   </section>
 
@@ -190,31 +166,14 @@
   <aside class="panel" id="panel">
     <div class="panel-header">
       <h3>Daedalus</h3>
-      <button class="icon-btn" id="closePanel" aria-label="Close">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-      </button>
+      <button class="icon-btn" id="closePanel" aria-label="Close">×</button>
     </div>
     <div class="panel-body">
-      <button class="panel-item" id="saveProjectBtn">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        Save Current as Project
-      </button>
-      <button class="panel-item" id="uploadDocBtn">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        Upload Document
-      </button>
-      <button class="panel-item" id="clearChatBtn">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg>
-        Clear Conversation
-      </button>
-      <button class="panel-item" id="exportBtn">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Export Conversation
-      </button>
-      <button class="panel-item" id="settingsBtn">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-        LLM Settings
-      </button>
+      <button class="panel-item" id="saveProjectBtn">Save Current as Project</button>
+      <button class="panel-item" id="uploadDocBtn">Upload Document</button>
+      <button class="panel-item" id="clearChatBtn">Clear Conversation</button>
+      <button class="panel-item" id="exportBtn">Export Conversation</button>
+      <button class="panel-item" id="settingsBtn">LLM Settings</button>
       <div class="panel-divider"></div>
       <div class="panel-section">
         <h4>Documents</h4>
@@ -225,7 +184,7 @@
       <div class="panel-divider"></div>
       <div class="panel-section">
         <h4>About</h4>
-        <p class="about-text">Autonomous AI Innovation Agent crafted by Or4cl3 AI Solutions’ Autonomous R&amp;D Lab. I translate visionary software ideas into tangible, production-ready realities.</p>
+        <p class="about-text">Autonomous AI Innovation Agent by Or4cl3 AI Solutions.</p>
         <p class="version">v2.1 · LLM-Connected</p>
       </div>
     </div>
@@ -236,7 +195,7 @@
   <div class="modal-overlay" id="settingsOverlay">
     <div class="modal" id="settingsModal">
       <h3>LLM Settings</h3>
-      <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;line-height:1.4">Paste a Hugging Face token with <strong>Inference Providers</strong> permission. Token stays on this device only.</p>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;line-height:1.4">Paste a Hugging Face token with <strong>Inference Providers</strong> permission.</p>
       <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px">HF Access Token</label>
       <input type="password" id="hfTokenInput" placeholder="hf_…" autocomplete="off" style="margin-bottom:12px" />
       <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px">Model ID</label>
@@ -265,11 +224,40 @@
       window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     }
   </script>
-  <script src="js/daedalus.js"></script>
+  <script>
+    // Always-on Begin Building (works even if main script fails)
+    window.__daedalusStart = function () {
+      document.querySelectorAll('.screen').forEach(function (s) { s.classList.remove('active'); });
+      var loading = document.getElementById('loading');
+      var app = document.getElementById('app');
+      if (loading) {
+        loading.classList.add('active');
+        var fill = document.getElementById('loadingFill');
+        var text = document.getElementById('loadingText');
+        var msgs = ['Initializing neural core…','Loading methodologies…','Calibrating creativity engines…','Establishing privacy layer…','Ready.'];
+        var step = 0;
+        var iv = setInterval(function () {
+          step++;
+          if (fill) fill.style.width = Math.min(100, (step / msgs.length) * 100) + '%';
+          if (text && step < msgs.length) text.textContent = msgs[step];
+          if (step >= msgs.length) {
+            clearInterval(iv);
+            setTimeout(function () {
+              loading.classList.remove('active');
+              if (app) app.classList.add('active');
+            }, 300);
+          }
+        }, 400);
+      } else if (app) {
+        app.classList.add('active');
+      }
+    };
+  </script>
+  <script src="js/daedalus.js?v=212"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(() => {});
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js').catch(function () {});
       });
     }
   </script>
