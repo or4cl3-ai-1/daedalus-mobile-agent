@@ -4,7 +4,7 @@
   const state = {
     messages: [], projects: [], documents: [], currentProjectId: null,
     isTyping: false, modalMode: null, renameId: null,
-    hfToken: null, hfModel: 'google/gemma-2-9b-it', mode: 'auto', listening: false
+    hfToken: null, hfModel: 'meta-llama/Llama-3.1-8B-Instruct', mode: 'auto', listening: false
   };
   const MODE_PROMPTS = {
     auto: '',
@@ -63,9 +63,10 @@
     const iv = setInterval(() => {
       step++; fill.style.width = Math.min(100, step/loadMsgs.length*100)+'%';
       if (step < loadMsgs.length) text.textContent = loadMsgs[step];
-      if (step >= loadMsgs.length) { clearInterval(iv); setTimeout(() => { showScreen('app'); inputEl.focus(); }, 400); }
+      if (step >= loadMsgs.length) { clearInterval(iv); setTimeout(() => { showScreen('app'); inputEl && inputEl.focus(); }, 400); }
     }, 480);
   }
+  window.__daedalusStart = runLoading;
   function loadState() {
     try {
       state.messages = JSON.parse(localStorage.getItem(S_MSG)||'[]');
@@ -73,13 +74,13 @@
       state.documents = JSON.parse(localStorage.getItem(S_DOCS)||'[]');
       state.currentProjectId = localStorage.getItem(S_CUR)||null;
       state.hfToken = localStorage.getItem(S_TOK)||null;
-      state.hfModel = localStorage.getItem(S_MOD)||'google/gemma-2-9b-it';
+      state.hfModel = localStorage.getItem(S_MOD)||'meta-llama/Llama-3.1-8B-Instruct';
     } catch(e) { state.messages=[]; state.projects=[]; state.documents=[]; }
   }
   function saveHf() {
     try {
       if (state.hfToken) localStorage.setItem(S_TOK, state.hfToken); else localStorage.removeItem(S_TOK);
-      localStorage.setItem(S_MOD, state.hfModel||'google/gemma-2-9b-it');
+      localStorage.setItem(S_MOD, state.hfModel||'meta-llama/Llama-3.1-8B-Instruct');
     } catch(e) {}
   }
   function saveMessages() { try { localStorage.setItem(S_MSG, JSON.stringify(state.messages)); } catch(e) {} }
@@ -92,7 +93,7 @@
   function formatTime(d) { return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
   function escapeHtml(s) { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
   function renderMarkdown(s) { return s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>'); }
-  function scrollToBottom() { requestAnimationFrame(() => { chatEl.scrollTop = chatEl.scrollHeight; }); }
+  function scrollToBottom() { requestAnimationFrame(() => { if (chatEl) chatEl.scrollTop = chatEl.scrollHeight; }); }
 
   function renderDocuments() {
     if (docsList) {
@@ -130,7 +131,7 @@
       const [doc] = state.documents.splice(idx, 1);
       state.documents.push(doc); saveDocuments(); renderDocuments(); switchView('chatView');
       const note = `Now focusing on **${doc.name}**. Ask me to summarize, extract key ideas, or design systems from it.`;
-      welcomeEl.classList.add('hidden');
+      if (welcomeEl) welcomeEl.classList.add('hidden');
       typeResponse(note, () => { state.messages.push({role:'agent', content:note, time:formatTime(new Date())}); saveMessages(); });
     }));
     grid.querySelectorAll('.delete-btn').forEach(btn =>
@@ -160,19 +161,19 @@
   }
   async function handleDocumentUpload(file) {
     if (!file) return;
-    headerStatus.textContent = 'Extracting…';
+    if (headerStatus) headerStatus.textContent = 'Extracting…';
     try {
       let text = await extractTextFromFile(file);
       if (!text || text.length < 20) throw new Error('Could not extract meaningful text.');
       if (text.length > MAX_DOC) text = text.slice(0, MAX_DOC) + '\n\n[… truncated …]';
       state.documents.push({ id:'doc_'+Date.now(), name:file.name, type:file.type||'text', text, chars:text.length, addedAt:Date.now() });
       saveDocuments(); renderDocuments(); updateContextBar();
-      headerStatus.textContent = state.hfToken ? 'LLM Ready' : 'Ready';
+      if (headerStatus) headerStatus.textContent = state.hfToken ? 'LLM Ready' : 'Ready';
       const note = `Document **${file.name}** uploaded (${Math.round(text.length/1024)}k chars). I can reference it now.`;
-      welcomeEl.classList.add('hidden');
+      if (welcomeEl) welcomeEl.classList.add('hidden');
       typeResponse(note, () => { state.messages.push({role:'agent', content:note, time:formatTime(new Date())}); saveMessages(); });
     } catch (err) {
-      headerStatus.textContent = 'Ready';
+      if (headerStatus) headerStatus.textContent = 'Ready';
       alert('Upload failed: ' + (err.message||'Unknown error'));
     }
   }
@@ -203,16 +204,46 @@
     const docCtx = getDocumentContext(5000);
     if (docCtx) messages.push({ role:'system', content: 'Attached document context:' + docCtx });
     state.messages.slice(-12).forEach(m => messages.push({ role: m.role==='agent'?'assistant':'user', content: m.content }));
-    const res = await fetch('https://router.huggingface.co/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + state.hfToken, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: state.hfModel, messages, max_tokens: 1024, temperature: 0.7, stream: false })
-    });
-    if (!res.ok) throw new Error('HF API ' + res.status + ': ' + (await res.text()).slice(0,200));
-    const data = await res.json();
-    const content = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
-    if (!content) throw new Error('Empty response');
-    return content.trim();
+    messages.push({ role:'user', content: userText });
+
+    const modelCandidates = [];
+    const base = (state.hfModel || 'meta-llama/Llama-3.1-8B-Instruct').trim();
+    modelCandidates.push(base);
+    if (!base.includes(':')) {
+      modelCandidates.push(base + ':fastest');
+      modelCandidates.push(base + ':cheapest');
+    }
+
+    let lastErr = null;
+    for (const model of modelCandidates) {
+      try {
+        const res = await fetch('https://router.huggingface.co/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + state.hfToken, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model, messages, max_tokens: 1024, temperature: 0.7, stream: false })
+        });
+        const raw = await res.text();
+        if (!res.ok) {
+          let detail = raw.slice(0, 280);
+          try {
+            const j = JSON.parse(raw);
+            detail = (j.error && (j.error.message || j.error)) || j.message || detail;
+            if (typeof detail !== 'string') detail = JSON.stringify(detail).slice(0, 280);
+          } catch (_) {}
+          lastErr = new Error('HF ' + res.status + ' [' + model + ']: ' + detail);
+          if (res.status === 401 || res.status === 403) throw lastErr;
+          continue;
+        }
+        const data = JSON.parse(raw);
+        const content = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+        if (!content) throw new Error('Empty response from ' + model);
+        return content.trim();
+      } catch (e) {
+        lastErr = e;
+        if (e && e.message && (e.message.includes('401') || e.message.includes('403'))) throw e;
+      }
+    }
+    throw lastErr || new Error('All model candidates failed');
   }
   function addUserMessage(text) {
     const el = document.createElement('div');
@@ -242,9 +273,10 @@
     })();
   }
   function renderAllMessages() {
+    if (!chatEl) return;
     chatEl.innerHTML = '';
-    if (!state.messages.length) { welcomeEl.classList.remove('hidden'); return; }
-    welcomeEl.classList.add('hidden');
+    if (!state.messages.length) { if (welcomeEl) welcomeEl.classList.remove('hidden'); return; }
+    if (welcomeEl) welcomeEl.classList.add('hidden');
     state.messages.forEach(m => {
       const el = document.createElement('div'); el.className = 'message ' + m.role;
       el.innerHTML = `<div class="bubble">${m.role==='agent'?renderMarkdown(m.content):escapeHtml(m.content)}</div><div class="meta">${m.time||''}</div>`;
@@ -253,27 +285,29 @@
     scrollToBottom();
   }
   async function handleSend(text) {
-    text = (text || inputEl.value).trim();
+    text = (text || (inputEl && inputEl.value) || '').trim();
     if (!text || state.isTyping) return;
-    welcomeEl.classList.add('hidden'); addUserMessage(text);
-    inputEl.value = ''; autoResize(); sendBtn.disabled = true; state.isTyping = true;
-    headerStatus.textContent = state.hfToken ? 'Connecting…' : 'Thinking…';
+    if (welcomeEl) welcomeEl.classList.add('hidden'); addUserMessage(text);
+    if (inputEl) { inputEl.value = ''; autoResize(); }
+    if (sendBtn) sendBtn.disabled = true; state.isTyping = true;
+    if (headerStatus) headerStatus.textContent = state.hfToken ? 'Connecting…' : 'Thinking…';
     state.messages.push({ role:'user', content:text, time:formatTime(new Date()) }); saveMessages();
     showTyping();
     let reply;
     try {
-      if (state.hfToken) { headerStatus.textContent = 'Daedalus (LLM)…'; reply = await callHuggingFaceLLM(text); }
+      if (state.hfToken) { if (headerStatus) headerStatus.textContent = 'Daedalus (LLM)…'; reply = await callHuggingFaceLLM(text); }
       else { await new Promise(r => setTimeout(r, 400)); reply = generateResponse(text); }
     } catch (err) {
       console.warn(err);
-      reply = generateResponse(text) + '\n\n_(Live model call failed — using local engine. Check token/model in Settings.)_';
+      const why = (err && err.message) ? err.message : 'unknown error';
+      reply = generateResponse(text) + '\n\n_⚠️ Live model failed: ' + why + '\n\nFix in **Menu → LLM Settings**: use a router model (e.g. `meta-llama/Llama-3.1-8B-Instruct`) and a token with **Inference Providers** permission._';
     }
     hideTyping();
     typeResponse(reply, () => {
       state.messages.push({ role:'agent', content:reply, time:formatTime(new Date()) });
       saveMessages(); state.isTyping = false;
-      headerStatus.textContent = state.hfToken ? 'LLM Ready' : 'Ready';
-      sendBtn.disabled = !inputEl.value.trim();
+      if (headerStatus) headerStatus.textContent = state.hfToken ? 'LLM Ready' : 'Ready';
+      if (sendBtn && inputEl) sendBtn.disabled = !inputEl.value.trim();
       renderFollowups(); updateContextBar();
     });
   }
@@ -310,10 +344,10 @@
     if (!SR) { alert('Voice input not supported in this browser.'); return; }
     if (state.listening && state._rec) { state._rec.stop(); return; }
     const rec = new SR(); rec.lang = 'en-US'; state._rec = rec;
-    rec.onstart = () => { state.listening = true; $('#micBtn')&&$('#micBtn').classList.add('listening'); headerStatus.textContent = 'Listening…'; };
-    rec.onend = () => { state.listening = false; $('#micBtn')&&$('#micBtn').classList.remove('listening'); headerStatus.textContent = state.hfToken?'LLM Ready':'Ready'; };
+    rec.onstart = () => { state.listening = true; $('#micBtn')&&$('#micBtn').classList.add('listening'); if (headerStatus) headerStatus.textContent = 'Listening…'; };
+    rec.onend = () => { state.listening = false; $('#micBtn')&&$('#micBtn').classList.remove('listening'); if (headerStatus) headerStatus.textContent = state.hfToken?'LLM Ready':'Ready'; };
     rec.onerror = () => { state.listening = false; $('#micBtn')&&$('#micBtn').classList.remove('listening'); };
-    rec.onresult = e => { const said = e.results[0][0].transcript; inputEl.value = said; autoResize(); handleSend(said); };
+    rec.onresult = e => { const said = e.results[0][0].transcript; if (inputEl) { inputEl.value = said; autoResize(); } handleSend(said); };
     rec.start();
   }
   function speakLast() {
@@ -323,11 +357,12 @@
     const u = new SpeechSynthesisUtterance(last.content.replace(/\*\*/g,''));
     u.rate = 1.02; speechSynthesis.speak(u);
   }
-  function autoResize() { inputEl.style.height='auto'; inputEl.style.height=Math.min(inputEl.scrollHeight,110)+'px'; }
+  function autoResize() { if (!inputEl) return; inputEl.style.height='auto'; inputEl.style.height=Math.min(inputEl.scrollHeight,110)+'px'; }
   function renderProjects() {
+    if (!projectsGrid) return;
     projectsGrid.innerHTML = '';
-    if (!state.projects.length) { projectsEmpty.classList.add('visible'); return; }
-    projectsEmpty.classList.remove('visible');
+    if (!state.projects.length) { if (projectsEmpty) projectsEmpty.classList.add('visible'); return; }
+    if (projectsEmpty) projectsEmpty.classList.remove('visible');
     state.projects.slice().sort((a,b)=>b.updatedAt-a.updatedAt).forEach(p => {
       const card = document.createElement('div'); card.className = 'project-card';
       const date = new Date(p.updatedAt).toLocaleDateString([], {month:'short', day:'numeric'});
@@ -341,92 +376,101 @@
   function openProject(id) {
     const p = state.projects.find(x => x.id===id); if (!p) return;
     state.messages = JSON.parse(JSON.stringify(p.messages)); setCurrentProject(id); saveMessages();
-    headerTitle.textContent = p.name; renderAllMessages(); switchView('chatView');
+    if (headerTitle) headerTitle.textContent = p.name; renderAllMessages(); switchView('chatView');
   }
   function saveCurrentAsProject(name) {
     const now = Date.now();
     if (state.currentProjectId) {
       const existing = state.projects.find(p => p.id===state.currentProjectId);
-      if (existing) { existing.name=name; existing.messages=JSON.parse(JSON.stringify(state.messages)); existing.updatedAt=now; saveProjects(); headerTitle.textContent=name; return; }
+      if (existing) { existing.name=name; existing.messages=JSON.parse(JSON.stringify(state.messages)); existing.updatedAt=now; saveProjects(); if (headerTitle) headerTitle.textContent=name; return; }
     }
     const id = 'p_'+now;
     state.projects.push({ id, name, messages:JSON.parse(JSON.stringify(state.messages)), createdAt:now, updatedAt:now });
-    setCurrentProject(id); saveProjects(); headerTitle.textContent=name;
+    setCurrentProject(id); saveProjects(); if (headerTitle) headerTitle.textContent=name;
   }
   function deleteProject(id) {
     if (!confirm('Delete this project?')) return;
     state.projects = state.projects.filter(p => p.id!==id);
-    if (state.currentProjectId===id) { setCurrentProject(null); headerTitle.textContent='Daedalus'; }
+    if (state.currentProjectId===id) { setCurrentProject(null); if (headerTitle) headerTitle.textContent='Daedalus'; }
     saveProjects(); renderProjects();
   }
   function startNewProject() {
-    state.messages=[]; setCurrentProject(null); saveMessages(); headerTitle.textContent='Daedalus';
-    renderAllMessages(); switchView('chatView'); welcomeEl.classList.remove('hidden');
+    state.messages=[]; setCurrentProject(null); saveMessages(); if (headerTitle) headerTitle.textContent='Daedalus';
+    renderAllMessages(); switchView('chatView'); if (welcomeEl) welcomeEl.classList.remove('hidden');
   }
   function openSaveModal() {
-    state.modalMode='save'; modalTitle.textContent='Save Project';
-    projectNameInput.value = state.currentProjectId ? ((state.projects.find(p=>p.id===state.currentProjectId)||{}).name||'') : '';
-    modalOverlay.classList.add('open'); setTimeout(()=>projectNameInput.focus(),100);
+    state.modalMode='save'; if (modalTitle) modalTitle.textContent='Save Project';
+    if (projectNameInput) projectNameInput.value = state.currentProjectId ? ((state.projects.find(p=>p.id===state.currentProjectId)||{}).name||'') : '';
+    if (modalOverlay) modalOverlay.classList.add('open'); setTimeout(()=>projectNameInput&&projectNameInput.focus(),100);
   }
   function openRenameModal(id) {
     state.modalMode='rename'; state.renameId=id;
     const p = state.projects.find(x=>x.id===id);
-    modalTitle.textContent='Rename Project'; projectNameInput.value=p?p.name:'';
-    modalOverlay.classList.add('open'); setTimeout(()=>projectNameInput.focus(),100);
+    if (modalTitle) modalTitle.textContent='Rename Project'; if (projectNameInput) projectNameInput.value=p?p.name:'';
+    if (modalOverlay) modalOverlay.classList.add('open'); setTimeout(()=>projectNameInput&&projectNameInput.focus(),100);
   }
-  function closeModal() { modalOverlay.classList.remove('open'); state.modalMode=null; state.renameId=null; }
+  function closeModal() { if (modalOverlay) modalOverlay.classList.remove('open'); state.modalMode=null; state.renameId=null; }
   function confirmModal() {
-    const name = projectNameInput.value.trim(); if (!name) return;
+    const name = projectNameInput ? projectNameInput.value.trim() : ''; if (!name) return;
     if (state.modalMode==='save') saveCurrentAsProject(name);
     else if (state.modalMode==='rename' && state.renameId) {
       const p = state.projects.find(x=>x.id===state.renameId);
-      if (p) { p.name=name; p.updatedAt=Date.now(); saveProjects(); if (state.currentProjectId===state.renameId) headerTitle.textContent=name; }
+      if (p) { p.name=name; p.updatedAt=Date.now(); saveProjects(); if (state.currentProjectId===state.renameId && headerTitle) headerTitle.textContent=name; }
     }
-    closeModal(); if (document.getElementById('projectsView').classList.contains('active')) renderProjects();
+    closeModal(); if (document.getElementById('projectsView') && document.getElementById('projectsView').classList.contains('active')) renderProjects();
   }
-  function openPanel() { panel.classList.add('open'); overlay.classList.add('open'); }
-  function closePanel() { panel.classList.remove('open'); overlay.classList.remove('open'); }
+  function openPanel() { if (panel) panel.classList.add('open'); if (overlay) overlay.classList.add('open'); }
+  function closePanel() { if (panel) panel.classList.remove('open'); if (overlay) overlay.classList.remove('open'); }
   function bindEvents() {
-    $('#enterBtn').addEventListener('click', () => runLoading());
-    inputEl.addEventListener('input', () => { autoResize(); sendBtn.disabled=!inputEl.value.trim()||state.isTyping; });
-    inputEl.addEventListener('keydown', e => { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } });
-    sendBtn.addEventListener('click', () => handleSend());
+    const enter = $('#enterBtn');
+    if (enter) {
+      enter.addEventListener('click', (e) => { e.preventDefault(); runLoading(); });
+      enter.addEventListener('touchend', (e) => { e.preventDefault(); runLoading(); }, {passive:false});
+    }
+    window.__daedalusStart = runLoading;
+    if (inputEl) {
+      inputEl.addEventListener('input', () => { autoResize(); if (sendBtn) sendBtn.disabled=!inputEl.value.trim()||state.isTyping; });
+      inputEl.addEventListener('keydown', e => { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } });
+    }
+    if (sendBtn) sendBtn.addEventListener('click', () => handleSend());
     $$('.suggestion').forEach(btn => btn.addEventListener('click', () => handleSend(btn.textContent)));
     $$('.nav-item').forEach(btn => btn.addEventListener('click', () => switchView(btn.dataset.view)));
-    $('#menuBtn').addEventListener('click', openPanel);
-    $('#closePanel').addEventListener('click', closePanel);
-    overlay.addEventListener('click', closePanel);
-    $('#saveProjectBtn').addEventListener('click', () => { closePanel(); openSaveModal(); });
-    $('#uploadDocBtn') && $('#uploadDocBtn').addEventListener('click', () => docInput.click());
-    $('#uploadDocBtnMain') && $('#uploadDocBtnMain').addEventListener('click', () => docInput.click());
+    $('#menuBtn') && $('#menuBtn').addEventListener('click', openPanel);
+    $('#closePanel') && $('#closePanel').addEventListener('click', closePanel);
+    overlay && overlay.addEventListener('click', closePanel);
+    $('#saveProjectBtn') && $('#saveProjectBtn').addEventListener('click', () => { closePanel(); openSaveModal(); });
+    $('#uploadDocBtn') && $('#uploadDocBtn').addEventListener('click', () => docInput && docInput.click());
+    $('#uploadDocBtnMain') && $('#uploadDocBtnMain').addEventListener('click', () => docInput && docInput.click());
     docInput && docInput.addEventListener('change', () => {
       const file = docInput.files && docInput.files[0];
       if (file) { closePanel(); handleDocumentUpload(file); docInput.value=''; }
     });
-    $('#clearChatBtn').addEventListener('click', () => {
+    $('#clearChatBtn') && $('#clearChatBtn').addEventListener('click', () => {
       if (confirm('Clear the current conversation?')) {
-        state.messages=[]; saveMessages(); renderAllMessages(); welcomeEl.classList.remove('hidden');
-        headerTitle.textContent='Daedalus'; setCurrentProject(null);
+        state.messages=[]; saveMessages(); renderAllMessages(); if (welcomeEl) welcomeEl.classList.remove('hidden');
+        if (headerTitle) headerTitle.textContent='Daedalus'; setCurrentProject(null);
       }
       closePanel();
     });
     const settingsOverlay = $('#settingsOverlay');
     $('#settingsBtn') && $('#settingsBtn').addEventListener('click', () => {
       closePanel();
-      $('#hfTokenInput').value = state.hfToken||'';
-      $('#hfModelInput').value = state.hfModel||'google/gemma-2-9b-it';
-      settingsOverlay.classList.add('open');
+      const tok = $('#hfTokenInput'), mod = $('#hfModelInput');
+      if (tok) tok.value = state.hfToken||'';
+      if (mod) mod.value = state.hfModel||'meta-llama/Llama-3.1-8B-Instruct';
+      if (settingsOverlay) settingsOverlay.classList.add('open');
     });
-    $('#settingsCancel') && $('#settingsCancel').addEventListener('click', () => settingsOverlay.classList.remove('open'));
+    $('#settingsCancel') && $('#settingsCancel').addEventListener('click', () => settingsOverlay && settingsOverlay.classList.remove('open'));
     $('#settingsSave') && $('#settingsSave').addEventListener('click', () => {
-      state.hfToken = ($('#hfTokenInput').value||'').trim()||null;
-      state.hfModel = ($('#hfModelInput').value||'').trim()||'google/gemma-2-9b-it';
-      saveHf(); settingsOverlay.classList.remove('open');
-      headerStatus.textContent = state.hfToken?'LLM Ready':'Ready'; updateContextBar();
+      const tok = $('#hfTokenInput'), mod = $('#hfModelInput');
+      state.hfToken = (tok && tok.value || '').trim() || null;
+      state.hfModel = (mod && mod.value || '').trim() || 'meta-llama/Llama-3.1-8B-Instruct';
+      saveHf(); if (settingsOverlay) settingsOverlay.classList.remove('open');
+      if (headerStatus) headerStatus.textContent = state.hfToken?'LLM Ready':'Ready'; updateContextBar();
     });
     settingsOverlay && settingsOverlay.addEventListener('click', e => { if (e.target===settingsOverlay) settingsOverlay.classList.remove('open'); });
-    $('#newProjectBtn').addEventListener('click', startNewProject);
-    $('#createProjectBtn').addEventListener('click', startNewProject);
+    $('#newProjectBtn') && $('#newProjectBtn').addEventListener('click', startNewProject);
+    $('#createProjectBtn') && $('#createProjectBtn').addEventListener('click', startNewProject);
     $('#micBtn') && $('#micBtn').addEventListener('click', startVoice);
     $('#speakBtn') && $('#speakBtn').addEventListener('click', speakLast);
     $('#exportBtn') && $('#exportBtn').addEventListener('click', () => { closePanel(); exportConversation(); });
@@ -434,19 +478,28 @@
       $$('.mode-chip').forEach(c => c.classList.remove('active'));
       chip.classList.add('active'); state.mode = chip.dataset.mode||'auto'; updateContextBar();
     }));
-    $('#modalCancel').addEventListener('click', closeModal);
-    $('#modalConfirm').addEventListener('click', confirmModal);
-    projectNameInput.addEventListener('keydown', e => { if (e.key==='Enter') confirmModal(); });
-    modalOverlay.addEventListener('click', e => { if (e.target===modalOverlay) closeModal(); });
+    $('#modalCancel') && $('#modalCancel').addEventListener('click', closeModal);
+    $('#modalConfirm') && $('#modalConfirm').addEventListener('click', confirmModal);
+    projectNameInput && projectNameInput.addEventListener('keydown', e => { if (e.key==='Enter') confirmModal(); });
+    modalOverlay && modalOverlay.addEventListener('click', e => { if (e.target===modalOverlay) closeModal(); });
   }
   function init() {
-    loadState(); initParticles(); bindEvents(); renderAllMessages(); renderDocuments();
-    if (state.currentProjectId) {
-      const p = state.projects.find(x => x.id===state.currentProjectId);
-      if (p) headerTitle.textContent = p.name;
+    try {
+      loadState(); initParticles(); bindEvents(); renderAllMessages(); renderDocuments();
+      if (state.currentProjectId) {
+        const p = state.projects.find(x => x.id===state.currentProjectId);
+        if (p && headerTitle) headerTitle.textContent = p.name;
+      }
+      if (state.hfToken && headerStatus) headerStatus.textContent = 'LLM Ready';
+      updateContextBar();
+    } catch (err) {
+      console.error('Daedalus init error', err);
+      window.__daedalusStart = function() {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        const app = document.getElementById('app');
+        if (app) app.classList.add('active');
+      };
     }
-    if (state.hfToken && headerStatus) headerStatus.textContent = 'LLM Ready';
-    updateContextBar();
   }
   init();
 })();
